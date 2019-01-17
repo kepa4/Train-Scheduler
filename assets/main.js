@@ -19,11 +19,24 @@ $(document).ready(function() {
     .get()
     .then(querySnapshot => {
       querySnapshot.forEach(doc => {
+        var firstTime = doc.data().firstTime;
+        var frequency = doc.data().frequency;
+        var firstTimeConverted = moment(firstTime, 'HH:mm').subtract(
+          1,
+          'years',
+        );
+        var currentTime = moment();
+        var diffTime = moment().diff(moment(firstTimeConverted), 'minutes');
+        var tRemainder = diffTime % frequency;
+        var minutesTillTrain = frequency - tRemainder;
+        var nextTrain = moment().add(minutesTillTrain, 'minutes');
+        var arrivalTime = moment(nextTrain).format('hh:mm');
         var newRow = $('<tr></tr>');
         newRow.append($('<th></th>', {text: doc.data().name}));
         newRow.append($('<th></th>', {text: doc.data().destination}));
         newRow.append($('<th></th>', {text: doc.data().frequency}));
-        newRow.append($('<th></th>', {text: doc.data().firstTime}));
+        newRow.append($('<th></th>', {text: arrivalTime}));
+        newRow.append($('<th></th>', {text: minutesTillTrain}));
         $('#table').append(newRow);
       });
     });
@@ -40,18 +53,11 @@ $(document).ready(function() {
       frequency: frequency,
       firstTime: firstTime,
     });
-  });
 
-  db.ref().on('child_added', function(childSnapshot) {
-    var name = childSnapshot.val().name;
-    var destination = childSnapshot.val().destination;
-    var frequency = childSnapshot.val().frequency;
-    var firstTime = childSnapshot.val().firstTime;
     var newRow = $('<tr></tr>');
     newRow.append($('<th></th>', {text: name}));
     newRow.append($('<th></th>', {text: destination}));
     newRow.append($('<th></th>', {text: frequency}));
-    newRow.append($('<th></th>', {text: firstTime}));
     $('#table').append(newRow);
   });
 });
